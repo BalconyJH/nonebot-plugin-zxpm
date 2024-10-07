@@ -1,13 +1,14 @@
 from pathlib import Path
 
-import nonebot
-from pydantic import BaseModel
+from nonebot import get_plugin_config
+from nonebot_plugin_localstore import get_data_dir
+from pydantic import BaseModel, model_validator
 
-DEFAULT_DATA_PATH = Path() / "data" / "zxpm"
+DATA_DIR = get_data_dir("nonebot_plugin_zxpm")
 
 
 class Config(BaseModel):
-    zxpm_data_path: str | Path = str(DEFAULT_DATA_PATH.absolute())
+    zxpm_data_path: str | None | Path = None
     """数据存储路径"""
     zxpm_db_url: str | None = None
     """DB_URL"""
@@ -24,17 +25,26 @@ class Config(BaseModel):
     zxpm_font: str = "msyh.ttc"
     """字体"""
 
+    @model_validator(mode="before")
+    def check_data_path(cls, values):
+        if values.get("zxpm_data_path") is None:
+            values["zxpm_data_path"] = DATA_DIR
 
-ZxpmConfig = nonebot.get_plugin_config(Config)
+        if isinstance(values.get("zxpm_data_path"), str):
+            values["zxpm_data_path"] = Path(values["zxpm_data_path"])
 
-if isinstance(ZxpmConfig.zxpm_data_path, str):
-    ZxpmConfig.zxpm_data_path = Path(ZxpmConfig.zxpm_data_path)
-ZxpmConfig.zxpm_data_path.mkdir(parents=True, exist_ok=True)
-if ZxpmConfig.zxpm_db_url:
-    if ZxpmConfig.zxpm_db_url.startswith("sqlite"):
-        db_path = ZxpmConfig.zxpm_db_url.split(":")[-1]
-        Path(db_path).parent.mkdir(parents=True, exist_ok=True)
-else:
-    db_path = ZxpmConfig.zxpm_data_path / "db" / "zxpm.db"
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    ZxpmConfig.zxpm_db_url = f"sqlite:{db_path.absolute()!s}"
+        return values
+
+    @model_validator(mode="before")
+    def check_db_url(cls, values):
+        if values.get("zxpm_db_url") is None:
+            values["zxpm_db_url"] = f"sqlite:{DATA_DIR / 'db' / 'zxpm.db'}"
+
+        if values.get("zxpm_db_url").startswith("sqlite"):
+            db_path = values.get("zxpm_db_url").split(":")[-1]
+            Path(db_path).parent.mkdir(parents=True, exist_ok=True)
+
+        return values
+
+
+ZxpmConfig = get_plugin_config(Config)

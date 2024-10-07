@@ -1,13 +1,16 @@
 from nonebot import require
-from nonebot.plugin import PluginMetadata, inherit_supported_adapters
+require("nonebot_plugin_alconna")
+require("nonebot_plugin_session")
+require("nonebot_plugin_uninfo")
+require("nonebot_plugin_localstore")
+
+
+from nonebot.plugin import inherit_supported_adapters
 
 from .config import Config
 from .enum import PluginType
 from .extra import PluginExtraData
 
-require("nonebot_plugin_alconna")
-require("nonebot_plugin_session")
-require("nonebot_plugin_uninfo")
 
 from .commands import *  # noqa: F403
 

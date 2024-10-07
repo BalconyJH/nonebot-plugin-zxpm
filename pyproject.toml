@@ -18,6 +18,7 @@ ruamel-yaml = "^0.18.6"
 strenum = "^0.4.15"
 nonebot-plugin-uninfo = "^0.4.0"
 pillow = "^10.4.0"
+nonebot-plugin-localstore = "^0.7.1"
 
 
 [tool.black]
